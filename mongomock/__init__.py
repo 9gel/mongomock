@@ -309,6 +309,8 @@ class Collection(object):
                 self._unique_index += [k[0] for k in key_or_list]
             else:
                 self._unique_index.append(key_or_list)
+    def drop_index(self, key_or_list):
+        pass
 
 
 class Cursor(object):
