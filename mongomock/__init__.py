@@ -114,11 +114,11 @@ class Connection(object):
 class Database(object):
     def __init__(self, conn):
         super(Database, self).__init__()
-        self._collections = {'system.indexes' : Collection(self)}
+        self._collections = {'system.indexes' : Collection(self, 'system.indexes')}
     def __getitem__(self, db_name):
         db = self._collections.get(db_name, None)
         if db is None:
-            db = self._collections[db_name] = Collection(self)
+            db = self._collections[db_name] = Collection(self, db_name)
         return db
     def __getattr__(self, attr):
         return self[attr]
@@ -126,10 +126,11 @@ class Database(object):
         return list(self._collections.keys())
 
 class Collection(object):
-    def __init__(self, db):
+    def __init__(self, db, name):
         super(Collection, self).__init__()
         self._documents = {}
         self._unique_index = []
+        self._name = name
     def insert(self, data, w='ignored'):
         if isinstance(data, list):
             return [self._insert(element) for element in data]
@@ -266,7 +267,7 @@ class Collection(object):
                 is_match = search.match(doc_val) is not None
             elif key in LOGICAL_OPERATOR_MAP:
                 is_match = LOGICAL_OPERATOR_MAP[key] (self, document, search)
-            elif isinstance(doc_val, str): 
+            elif isinstance(doc_val, str):
                 is_match = doc_val == search
             elif isinstance(doc_val, Iterable) and _item(search):
                 is_match = search in doc_val
@@ -276,7 +277,7 @@ class Collection(object):
             if not is_match:
                 return False
         return True
-    
+
     def save(self, to_save, manipulate = True, safe = False, **kwargs):
         if not isinstance(to_save, dict):
             raise TypeError("cannot save object of type %s" % type(to_save))
@@ -311,6 +312,9 @@ class Collection(object):
                 self._unique_index.append(key_or_list)
     def drop_index(self, key_or_list):
         pass
+    @property
+    def name(self):
+        return self._name
 
 
 class Cursor(object):
