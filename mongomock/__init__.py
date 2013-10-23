@@ -206,7 +206,8 @@ class Collection(object):
                 document.update(spec)
             self.insert(document)
 
-    def find(self, spec = None, fields = None, filter = None, sort = None, timeout = True, limit = None):
+    def find(self, spec = None, fields = None, filter = None, sort = None, timeout = True, limit = None,
+            skip = 0, snapshot = False, slave_okay = False, read_preference = None):
         #TODO: implement limit
         if filter is not None:
             _print_deprecation_warning('filter', 'spec')
@@ -336,6 +337,10 @@ class Cursor(object):
             self._limit -= 1
         return next(self._dataset)
     next = __next__
+    def __getitem__(self, key):
+        if key != 0:
+            raise NotImplementedError("Mongomock cursor only supports fetching first element")
+        return next(self._dataset)
     def sort(self, key_or_list, direction=1):
         if isinstance(key_or_list, list):
             if len(key_or_list) != 1:
